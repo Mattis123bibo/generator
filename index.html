@@ -2,131 +2,573 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" />
-<title>Mattis Generator</title>
+<title>Mattis Poker Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  body { font-family: Arial, sans-serif; background: #0b1e2d; color: #f0f4f8; text-align: center; margin: 0; padding: 0; }
-  h1 { margin: 20px 0; font-size: 32px; color: #1fa2ff; }
-  .cards { display: flex; justify-content: center; gap: 14px; margin: 15px 0; }
-  .card {
-    width: 90px; height: 130px; background: white; color: black;
-    border-radius: 10px; box-shadow: 0 5px 14px rgba(0,0,0,0.5);
-    display: flex; flex-direction: column; justify-content: space-between;
-    padding: 10px; font-weight: bold; font-size: 24px;
+  :root {
+    --felt: #0d4a2c;
+    --felt-light: #155c36;
+    --felt-dark: #082e1a;
+    --gold: #c9a84c;
+    --gold-light: #f0d07a;
+    --cream: #f5f0e8;
+    --ink: #1a1209;
+    --red: #c0392b;
+    --blue: #1a3a5c;
+    --highlight: #f0d07a;
+    --card-bg: #faf7f0;
+    --card-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+    --section-bg: rgba(0,0,0,0.25);
   }
-  .suit { font-size: 30px; }
-  .heart, .diamond { color: red; }
-  .club, .spade { color: black; }
-  #resultList {
-    margin: 15px auto 25px;
-    width: 340px;
-    max-height: 260px;
-    overflow-y: auto;
-    background: #142f47;
-    border-radius: 10px;
-    padding: 10px;
-    text-align: left;
-    font-size: 18px;
-    box-shadow: inset 0 0 15px #0a1b2e;
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--felt-dark);
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(21,92,54,0.8) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
+    color: var(--cream);
+    min-height: 100vh;
+    padding: 0 0 60px;
+    overflow-x: hidden;
   }
-  #resultList div {
-    padding: 6px 12px;
-    border-bottom: 1px solid #255a8a;
+
+  /* ─── Header ─── */
+  header {
+    background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+    padding: 28px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
   }
-  #resultList div.drilling {
-    background-color: #ff9f1c;
-    color: #0b1e2d;
-    font-weight: bold;
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 900;
+    color: var(--gold-light);
+    letter-spacing: 0.06em;
+    text-shadow: 0 2px 20px rgba(201,168,76,0.5);
   }
-  .controls { margin: 20px 0; font-size: 20px; }
-  select { font-size: 18px; margin: 0 6px; }
-  input[type=range] { width: 230px; vertical-align: middle; }
+  header .subtitle {
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: rgba(245,240,232,0.5);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ─── Main Table Area ─── */
+  .table-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+  }
+
+  /* ─── Controls ─── */
+  .controls-panel {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+  }
+  .controls-panel .ctrl-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .controls-panel label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  select {
+    background: var(--ink);
+    color: var(--cream);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:hover { border-color: var(--gold); }
+
+  .interval-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 160px;
+    height: 4px;
+    background: rgba(201,168,76,0.3);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(201,168,76,0.6);
+  }
+  #intervalValue {
+    font-size: 13px;
+    color: var(--gold-light);
+    min-width: 36px;
+  }
+
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   button {
-    padding: 10px 18px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;
-    margin: 6px;
-    font-size: 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
   }
-  .start { background: #1fa2ff; color: #fff; }
-  .stop { background: #555; color: #fff; }
-  #holeArea { margin: 20px 0; }
-  #counterArea {
-    margin: 10px auto 40px;
-    width: 340px;
-    text-align: left;
-    font-size: 18px;
-    color: #f0f4f8;
+  .btn-start {
+    background: linear-gradient(135deg, #1a7a48, #0d4a2c);
+    color: var(--gold-light);
+    border: 1px solid rgba(201,168,76,0.4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
-  #counterArea div {
-    margin: 4px 0;
+  .btn-start:hover:not(:disabled) {
+    background: linear-gradient(135deg, #229958, #155c36);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.2);
   }
+  .btn-stop {
+    background: rgba(80,30,20,0.8);
+    color: #e88;
+    border: 1px solid rgba(200,60,60,0.3);
+  }
+  .btn-stop:hover:not(:disabled) { background: rgba(120,40,30,0.9); }
+  .btn-restart {
+    background: rgba(26,58,92,0.8);
+    color: #7ab;
+    border: 1px solid rgba(100,160,220,0.3);
+  }
+  .btn-restart:hover { background: rgba(36,78,122,0.9); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ─── Stage Labels ─── */
+  .stage-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.6);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  /* ─── Poker Table Felt ─── */
+  .poker-table {
+    background: radial-gradient(ellipse at 50% 40%, #1a6640 0%, #0d4a2c 55%, #082e1a 100%);
+    border: 6px solid #3a2a10;
+    border-radius: 180px;
+    padding: 36px 20px 32px;
+    box-shadow:
+      inset 0 0 60px rgba(0,0,0,0.5),
+      0 12px 60px rgba(0,0,0,0.7),
+      0 0 0 2px rgba(201,168,76,0.15);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .poker-table::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Hole Cards row */
+  .hole-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .hole-label {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: rgba(201,168,76,0.55);
+    text-align: center;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  /* Community Cards */
+  .community-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Divider between stages */
+  .stage-divider {
+    width: 1px;
+    height: 100px;
+    background: rgba(201,168,76,0.15);
+    margin: 0 4px;
+    align-self: center;
+    display: none;
+  }
+  @media (min-width: 600px) { .stage-divider { display: block; } }
+
+  /* ─── Cards ─── */
+  .card {
+    width: 72px;
+    height: 105px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 7px 8px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 20px;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: cardDeal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes cardDeal {
+    from { transform: translateY(-20px) scale(0.85); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.5); }
+  .card-top { font-size: 17px; line-height: 1; }
+  .card-mid { font-size: 26px; text-align: center; line-height: 1; }
+  .card-bot { font-size: 17px; line-height: 1; text-align: right; transform: rotate(180deg); }
+
+  .red  { color: var(--red); }
+  .black { color: #1a1209; }
+
+  /* Placeholder card (face down) */
+  .card-placeholder {
+    width: 72px;
+    height: 105px;
+    border-radius: 8px;
+    background: repeating-linear-gradient(
+      -45deg, #1a5538, #1a5538 4px, #175032 4px, #175032 8px
+    );
+    border: 2px solid rgba(201,168,76,0.2);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: rgba(201,168,76,0.3);
+  }
+
+  /* ─── Stage badges ─── */
+  .stage-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+  }
+  .stage-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .stage-cards {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* ─── Best Hand badge ─── */
+  #handBadge {
+    text-align: center;
+    margin-top: 18px;
+    min-height: 36px;
+  }
+  #handBadge .hand-name {
+    display: inline-block;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 6px 22px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(201,168,76,0.4);
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+    animation: fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+
+  /* Special hand colors */
+  .hand-royal    { color: #fff; border-color: #fff; background: linear-gradient(135deg, rgba(50,0,100,0.6), rgba(100,0,50,0.6)); }
+  .hand-sf       { color: #ffd700; border-color: #ffd700; }
+  .hand-quad     { color: #ff6b35; border-color: #ff6b35; }
+  .hand-fh       { color: #e0a050; border-color: #e0a050; }
+  .hand-flush    { color: #5bc8f5; border-color: #5bc8f5; }
+  .hand-straight { color: #a8e063; border-color: #a8e063; }
+  .hand-three    { color: #f0d07a; border-color: rgba(240,208,122,0.4); }
+  .hand-two      { color: #ccc; border-color: rgba(200,200,200,0.3); }
+  .hand-pair     { color: #aaa; border-color: rgba(170,170,170,0.3); }
+  .hand-high     { color: #888; border-color: rgba(130,130,130,0.2); }
+
+  /* ─── Stats & History ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+  @media (max-width: 700px) { .stats-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+
+  /* Stats */
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: rgba(245,240,232,0.6); }
+  .stat-val {
+    font-weight: 500;
+    color: var(--gold-light);
+    min-width: 40px;
+    text-align: right;
+  }
+  .stat-bar-wrap {
+    flex: 1;
+    margin: 0 10px;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-bar {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* History */
+  #resultList {
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,168,76,0.3) transparent;
+  }
+  #resultList::-webkit-scrollbar { width: 4px; }
+  #resultList::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+  .history-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(245,240,232,0.55);
+    font-size: 12px;
+  }
+  .history-entry:last-child { border-bottom: none; }
+  .history-num {
+    color: rgba(201,168,76,0.4);
+    min-width: 32px;
+    font-size: 11px;
+  }
+  .history-entry.h-drill { color: #f0d07a; }
+  .history-entry.h-fh    { color: #e0a050; }
+  .history-entry.h-flush { color: #5bc8f5; }
+  .history-entry.h-str   { color: #a8e063; }
+  .history-entry.h-sf    { color: #ffd700; font-weight: bold; }
+  .history-entry.h-quad  { color: #ff6b35; font-weight: bold; }
+  .history-entry.h-royal { color: #fff; font-weight: bold; }
+
+  /* Round counter */
+  .round-counter {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: rgba(201,168,76,0.4);
+    margin-bottom: 20px;
+  }
+  .round-counter span { color: var(--gold-light); font-size: 16px; }
 </style>
 </head>
 <body>
 
-<h1>Mattis Generator</h1>
+<header>
+  <h1>♠ Mattis Generator ♥</h1>
+  <div class="subtitle">Texas Hold'em — Simulator</div>
+</header>
 
-<div class="controls">
-  Hole Card 1: 
-  <select id="holeRank1"></select>
-  <select id="holeSuit1"></select>
-  &nbsp;&nbsp;
-  Hole Card 2:
-  <select id="holeRank2"></select>
-  <select id="holeSuit2"></select>
-  <br><br>
-  <label for="interval">Intervall (Sek.):</label>
-  <input id="interval" type="range" min="0.5" max="5" step="0.5" value="2" />
-  <span id="intervalValue">2.0s</span>
-  <br><br>
-  <button id="startBtn" class="start">Start</button>
-  <button id="stopBtn" class="stop" disabled>Stop</button>
-  <button id="restartBtn" class="start">Neustart</button>
-</div>
+<div class="table-wrapper">
 
-<!-- Hole Cards mittig über dem Flop -->
-<div id="holeArea" class="cards"></div>
+  <!-- Controls -->
+  <div class="controls-panel">
+    <div class="ctrl-group">
+      <label>Hand 1</label>
+      <select id="holeRank1"></select>
+      <select id="holeSuit1"></select>
+    </div>
+    <div class="ctrl-group">
+      <label>Hand 2</label>
+      <select id="holeRank2"></select>
+      <select id="holeSuit2"></select>
+    </div>
+    <div class="ctrl-group interval-group">
+      <label>Tempo</label>
+      <input id="interval" type="range" min="0.5" max="5" step="0.5" value="2" />
+      <span id="intervalValue">2.0s</span>
+    </div>
+    <div class="btn-group">
+      <button id="startBtn" class="btn-start">▶ Start</button>
+      <button id="pauseBtn" class="btn-stop" disabled>⏸ Pause</button>
+      <button id="restartBtn" class="btn-restart">↺ Neu</button>
+    </div>
+  </div>
 
-<div>
-  <div style="font-size:18px;color:#ccc;margin-top:14px;">Flop</div>
-  <div class="cards" id="flopArea"></div>
-</div>
+  <!-- Poker Table -->
+  <div class="poker-table">
 
-<div id="resultList"></div>
+    <!-- Hole Cards -->
+    <div class="hole-label">Deine Karten</div>
+    <div class="hole-row" id="holeArea"></div>
 
-<div id="counterArea">
-  <div id="pairCount">Paar-Zähler: 0</div>
-  <div id="twoPairCount">Zwei Paare-Zähler: 0</div>
-  <div id="drillingCount">Drilling-Zähler: 0</div>
-  <div id="straightCount">Straßen-Zähler: 0</div>
-  <div id="flushCount">Flush-Zähler: 0</div>
-  <div id="fullHouseCount">Full House-Zähler: 0</div>
-</div>
+    <!-- Community Cards -->
+    <div style="display:flex; justify-content:center; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+
+      <div class="stage-group">
+        <div class="stage-badge">Flop</div>
+        <div class="stage-cards" id="flopArea">
+          <div class="card-placeholder">?</div>
+          <div class="card-placeholder">?</div>
+          <div class="card-placeholder">?</div>
+        </div>
+      </div>
+
+      <div class="stage-divider"></div>
+
+      <div class="stage-group">
+        <div class="stage-badge">Turn</div>
+        <div class="stage-cards" id="turnArea">
+          <div class="card-placeholder">?</div>
+        </div>
+      </div>
+
+      <div class="stage-divider"></div>
+
+      <div class="stage-group">
+        <div class="stage-badge">River</div>
+        <div class="stage-cards" id="riverArea">
+          <div class="card-placeholder">?</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Best Hand Display -->
+    <div id="handBadge"></div>
+
+  </div><!-- /poker-table -->
+
+  <div class="round-counter">Runde <span id="roundNum">0</span> / 1000</div>
+
+  <!-- 3 Stats Panels -->
+  <div class="stats-grid">
+    <div class="panel">
+      <div class="panel-title">🃏 Stand Flop</div>
+      <div id="statsFlop"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">🎴 Stand Turn</div>
+      <div id="statsTurn"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">🏆 Stand River</div>
+      <div id="statsRiver"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="panel" style="margin-top:16px;">
+    <div class="panel-title">📋 Verlauf</div>
+    <div id="resultList"></div>
+  </div>
+
+</div><!-- /table-wrapper -->
 
 <script>
 const RANKS = [2,3,4,5,6,7,8,9,10,11,12,13,14];
 const RANK_TO_STR = {11:'J',12:'Q',13:'K',14:'A'};
 const SUITS = ['♣','♦','♥','♠'];
 
-function rankStr(r){ return RANK_TO_STR[r] || r; }
+function rankStr(r){ return RANK_TO_STR[r] || String(r); }
+
 function cardEl(card){
   const el = document.createElement('div');
   el.className = 'card';
-  const suitClass = (card.s==='♥')?'heart':(card.s==='♦')?'diamond':(card.s==='♣')?'club':'spade';
-  el.innerHTML = `<div>${rankStr(card.r)}</div>
-                  <div class="suit ${suitClass}">${card.s}</div>
-                  <div style="text-align:right">${card.s}</div>`;
+  const isRed = (card.s==='♥'||card.s==='♦');
+  const cls = isRed ? 'red' : 'black';
+  const r = rankStr(card.r);
+  el.innerHTML = `
+    <div class="card-top ${cls}">${r}<br><small>${card.s}</small></div>
+    <div class="card-mid ${cls}">${card.s}</div>
+    <div class="card-bot ${cls}">${r}<br><small>${card.s}</small></div>`;
   return el;
 }
 
 function buildDeck(){
   const deck = [];
-  for(const r of RANKS){
-    for(const s of SUITS){
-      deck.push({r,s});
-    }
-  }
+  for(const r of RANKS) for(const s of SUITS) deck.push({r,s});
   return deck;
 }
-
 function shuffle(a){
   for(let i=a.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -135,300 +577,307 @@ function shuffle(a){
 }
 
 function isStraight(ranks){
-  const uniq = [...new Set(ranks)].sort((a,b)=>a-b);
+  const uniq=[...new Set(ranks)].sort((a,b)=>a-b);
   for(let i=0;i<=uniq.length-5;i++){
-    if(uniq[i]+4===uniq[i+4] && uniq[i+1]===uniq[i]+1 && uniq[i+2]===uniq[i]+2 && uniq[i+3]===uniq[i]+3)
-      return [true, uniq[i+4]];
+    if(uniq[i+4]-uniq[i]===4&&uniq[i+1]-uniq[i]===1&&uniq[i+2]-uniq[i]===2&&uniq[i+3]-uniq[i]===3)
+      return[true,uniq[i+4]];
   }
   if(uniq.includes(14)){
-    const low = uniq.map(r=>r===14?1:r).sort((a,b)=>a-b);
+    const low=uniq.map(r=>r===14?1:r).sort((a,b)=>a-b);
     for(let i=0;i<=low.length-5;i++){
-      if(low[i]+4===low[i+4] && low[i+1]===low[i]+1 && low[i+2]===low[i]+2 && low[i+3]===low[i]+3)
-        return [true,5];
+      if(low[i+4]-low[i]===4&&low[i+1]-low[i]===1&&low[i+2]-low[i]===2&&low[i+3]-low[i]===3)
+        return[true,5];
     }
   }
-  return [false,null];
+  return[false,null];
 }
 
 function classify(allCards){
-  const ranks = allCards.map(c=>c.r);
-  const suits = allCards.map(c=>c.s);
-  const counts = {};
+  const ranks=allCards.map(c=>c.r);
+  const suits=allCards.map(c=>c.s);
+  const counts={};
   ranks.forEach(r=>counts[r]=(counts[r]||0)+1);
-  const maxCount = Math.max(...Object.values(counts));
-  const pairCount = Object.values(counts).filter(v=>v===2).length;
-  const flushSuit = SUITS.find(s=>suits.filter(x=>x===s).length>=5);
-  const [straight, sh] = isStraight(ranks);
+  const vals=Object.values(counts);
+  const maxCount=Math.max(...vals);
+  const pairCount=vals.filter(v=>v===2).length;
+  const flushSuit=SUITS.find(s=>suits.filter(x=>x===s).length>=5);
+  const [straight,sh]=isStraight(ranks);
+
   if(flushSuit){
-    const suitedRanks = allCards.filter(c=>c.s===flushSuit).map(c=>c.r);
-    const [sf, sfh] = isStraight(suitedRanks);
-    if(sf && suitedRanks.length>=5){
-      if(sfh===14) return "Royal Flush";
-      return `Straight Flush (High ${rankStr(sfh)})`;
+    const suitedRanks=allCards.filter(c=>c.s===flushSuit).map(c=>c.r);
+    const [sf,sfh]=isStraight(suitedRanks);
+    if(sf&&suitedRanks.length>=5){
+      if(sfh===14) return"Royal Flush";
+      return`Straight Flush (${rankStr(sfh)})`;
     }
   }
-  if(maxCount===4) return `Vierling (${rankStr(+Object.keys(counts).find(k=>counts[k]===4))})`;
-  if(maxCount===3 && pairCount>=1){
-    const trips = rankStr(+Object.keys(counts).find(k=>counts[k]===3));
-    const pair = rankStr(+Object.keys(counts).find(k=>counts[k]===2));
-    return `Full House (${trips} über ${pair})`;
+  if(maxCount===4) return`Vierling (${rankStr(+Object.keys(counts).find(k=>counts[k]===4))})`;
+  if(maxCount===3&&pairCount>=1){
+    return`Full House (${rankStr(+Object.keys(counts).find(k=>counts[k]===3))} / ${rankStr(+Object.keys(counts).find(k=>counts[k]===2))})`;
   }
-  if(flushSuit) return `Flush (${flushSuit})`;
-  if(straight) return `Straight (High ${rankStr(sh)})`;
-  if(maxCount===3) return `Drilling (${rankStr(+Object.keys(counts).find(k=>counts[k]===3))})`;
+  if(flushSuit) return`Flush (${flushSuit})`;
+  if(straight) return`Straight (High: ${rankStr(sh)})`;
+  if(maxCount===3) return`Drilling (${rankStr(+Object.keys(counts).find(k=>counts[k]===3))})`;
   if(pairCount>=2){
-    const pairs = Object.keys(counts).filter(k=>counts[k]===2).map(Number).sort((a,b)=>b-a);
-    return `Zwei Paare (${rankStr(pairs[0])} & ${rankStr(pairs[1])})`;
+    const pairs=Object.keys(counts).filter(k=>counts[k]===2).map(Number).sort((a,b)=>b-a);
+    return`Zwei Paare (${rankStr(pairs[0])} & ${rankStr(pairs[1])})`;
   }
-  if(pairCount===1) return `Paar (${rankStr(+Object.keys(counts).find(k=>counts[k]===2))})`;
-  return `High Card (${rankStr(Math.max(...ranks))})`;
+  if(pairCount===1) return`Paar (${rankStr(+Object.keys(counts).find(k=>counts[k]===2))})`;
+  return`High Card (${rankStr(Math.max(...ranks))})`;
 }
 
-const holeRank1 = document.getElementById('holeRank1');
-const holeRank2 = document.getElementById('holeRank2');
-const holeSuit1 = document.getElementById('holeSuit1');
-const holeSuit2 = document.getElementById('holeSuit2');
-const holeArea = document.getElementById('holeArea');
-const flopArea = document.getElementById('flopArea');
-const resultList = document.getElementById('resultList');
-const intervalEl = document.getElementById('interval');
-const intervalVal = document.getElementById('intervalValue');
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const restartBtn = document.getElementById('restartBtn');
+function handClass(cl){
+  const c=cl.toLowerCase();
+  if(c.includes('royal')) return 'hand-royal';
+  if(c.includes('straight flush')) return 'hand-sf';
+  if(c.includes('vierling')) return 'hand-quad';
+  if(c.includes('full house')) return 'hand-fh';
+  if(c.includes('flush')) return 'hand-flush';
+  if(c.includes('straight')) return 'hand-straight';
+  if(c.includes('drilling')) return 'hand-three';
+  if(c.includes('zwei paare')) return 'hand-two';
+  if(c.includes('paar')) return 'hand-pair';
+  return 'hand-high';
+}
+function histClass(cl){
+  const c=cl.toLowerCase();
+  if(c.includes('royal')) return 'h-royal';
+  if(c.includes('straight flush')) return 'h-sf';
+  if(c.includes('vierling')) return 'h-quad';
+  if(c.includes('full house')) return 'h-fh';
+  if(c.includes('flush')) return 'h-flush';
+  if(c.includes('straight')) return 'h-str';
+  if(c.includes('drilling')) return 'h-drill';
+  return '';
+}
 
-const pairCountEl = document.getElementById('pairCount');
-const twoPairCountEl = document.getElementById('twoPairCount');
-const drillingCountEl = document.getElementById('drillingCount');
-const straightCountEl = document.getElementById('straightCount');
-const flushCountEl = document.getElementById('flushCount');
-const fullHouseCountEl = document.getElementById('fullHouseCount');
+// DOM refs
+const holeRank1=document.getElementById('holeRank1');
+const holeRank2=document.getElementById('holeRank2');
+const holeSuit1=document.getElementById('holeSuit1');
+const holeSuit2=document.getElementById('holeSuit2');
+const holeArea=document.getElementById('holeArea');
+const flopArea=document.getElementById('flopArea');
+const turnArea=document.getElementById('turnArea');
+const riverArea=document.getElementById('riverArea');
+const resultList=document.getElementById('resultList');
+const handBadge=document.getElementById('handBadge');
+const intervalEl=document.getElementById('interval');
+const intervalVal=document.getElementById('intervalValue');
+const startBtn=document.getElementById('startBtn');
+const stopBtn=document.getElementById('stopBtn');
+const restartBtn=document.getElementById('restartBtn');
+const roundNum=document.getElementById('roundNum');
+const statsArea=document.getElementById('statsArea');
 
-let timer = null;
-let history = [];
-let drillingCount = 0;
-let pairCount = 0;
-let twoPairCount = 0;
-let straightCount = 0;
-let flushCount = 0;
-let fullHouseCount = 0;
-let count = 0;
+let timer=null, history=[], count=0;
+const makeCounters=()=>({
+  'Royal Flush':0,'Straight Flush':0,'Vierling':0,'Full House':0,
+  'Flush':0,'Straight':0,'Drilling':0,'Zwei Paare':0,'Paar':0,'High Card':0
+});
+const counters={flop:makeCounters(), turn:makeCounters(), river:makeCounters()};
 
-function createOption(value, text) {
-  const opt = document.createElement('option');
-  opt.value = value;
-  opt.textContent = text;
+function catKey(cl){
+  const c=cl.toLowerCase();
+  if(c.includes('royal')) return 'Royal Flush';
+  if(c.includes('straight flush')) return 'Straight Flush';
+  if(c.includes('vierling')) return 'Vierling';
+  if(c.includes('full house')) return 'Full House';
+  if(c.includes('flush')) return 'Flush';
+  if(c.includes('straight')) return 'Straight';
+  if(c.includes('drilling')) return 'Drilling';
+  if(c.includes('zwei paare')) return 'Zwei Paare';
+  if(c.includes('paar')) return 'Paar';
+  return 'High Card';
+}
+
+function createOption(value,text,color){
+  const opt=document.createElement('option');
+  opt.value=value; opt.textContent=text;
+  if(color) opt.style.color=color;
   return opt;
 }
-
+function suitColor(s){ return (s==='♥'||s==='♦') ? '#e03030' : '#e8e0d0'; }
+function updateSuitSelectColor(sel){
+  sel.style.color = suitColor(sel.value);
+}
 function setupSelectors(){
-  const rankNames = [2,3,4,5,6,7,8,9,10,'J','Q','K','A'];
-  for(let i=0; i<RANKS.length; i++){
-    holeRank1.appendChild(createOption(RANKS[i], rankNames[i]));
-    holeRank2.appendChild(createOption(RANKS[i], rankNames[i]));
+  const rankNames=[2,3,4,5,6,7,8,9,10,'J','Q','K','A'];
+  for(let i=0;i<RANKS.length;i++){
+    holeRank1.appendChild(createOption(RANKS[i],rankNames[i]));
+    holeRank2.appendChild(createOption(RANKS[i],rankNames[i]));
   }
   SUITS.forEach(s=>{
-    holeSuit1.appendChild(createOption(s,s));
-    holeSuit2.appendChild(createOption(s,s));
+    holeSuit1.appendChild(createOption(s,s,suitColor(s)));
+    holeSuit2.appendChild(createOption(s,s,suitColor(s)));
   });
-  holeRank1.value = 10;
-  holeSuit1.value = '♥';
-  holeRank2.value = 11;
-  holeSuit2.value = '♠';
+  holeRank1.value=10; holeSuit1.value='♥';
+  holeRank2.value=11; holeSuit2.value='♠';
+  updateSuitSelectColor(holeSuit1);
+  updateSuitSelectColor(holeSuit2);
 }
 setupSelectors();
 
-intervalEl.addEventListener('input', () => {
-  intervalVal.textContent = parseFloat(intervalEl.value).toFixed(1) + 's';
-  if(timer){
-    clearInterval(timer);
-    timer = setInterval(drawOnce, parseFloat(intervalEl.value)*1000);
-  }
+intervalEl.addEventListener('input',()=>{
+  intervalVal.textContent=parseFloat(intervalEl.value).toFixed(1)+'s';
+  if(timer){ clearInterval(timer); timer=setInterval(drawOnce,parseFloat(intervalEl.value)*1000); }
 });
 
-// Verhindert doppelte Hole Cards:
-function checkHoleCards() {
-  const h1r = holeRank1.value;
-  const h1s = holeSuit1.value;
-  const h2r = holeRank2.value;
-  const h2s = holeSuit2.value;
-
-  if(h1r === h2r && h1s === h2s){
-    outer: for(let r of RANKS){
-      for(let s of SUITS){
-        if(r != h1r || s != h1s){
-          holeRank2.value = r;
-          holeSuit2.value = s;
-          break outer;
-        }
-      }
+function checkHoleCards(){
+  if(holeRank1.value===holeRank2.value&&holeSuit1.value===holeSuit2.value){
+    outer: for(const r of RANKS) for(const s of SUITS){
+      if(r!=holeRank1.value||s!=holeSuit1.value){ holeRank2.value=r; holeSuit2.value=s; break outer; }
     }
   }
 }
-
-// Hole Cards sofort anzeigen
 function renderHoleCards(){
-  holeArea.innerHTML = '';
-  const h1 = {r: parseInt(holeRank1.value), s: holeSuit1.value};
-  const h2 = {r: parseInt(holeRank2.value), s: holeSuit2.value};
-  holeArea.appendChild(cardEl(h1));
-  holeArea.appendChild(cardEl(h2));
+  holeArea.innerHTML='';
+  holeArea.appendChild(cardEl({r:parseInt(holeRank1.value),s:holeSuit1.value}));
+  holeArea.appendChild(cardEl({r:parseInt(holeRank2.value),s:holeSuit2.value}));
+}
+[holeRank1,holeSuit1,holeRank2,holeSuit2].forEach(el=>el.addEventListener('change',()=>{
+  updateSuitSelectColor(holeSuit1);
+  updateSuitSelectColor(holeSuit2);
+  checkHoleCards(); renderHoleCards();
+}));
+
+function setPlaceholders(){
+  flopArea.innerHTML='';
+  turnArea.innerHTML='';
+  riverArea.innerHTML='';
+  for(let i=0;i<3;i++){const p=document.createElement('div');p.className='card-placeholder';p.textContent='?';flopArea.appendChild(p);}
+  const pt=document.createElement('div');pt.className='card-placeholder';pt.textContent='?';turnArea.appendChild(pt);
+  const pr=document.createElement('div');pr.className='card-placeholder';pr.textContent='?';riverArea.appendChild(pr);
 }
 
-holeRank1.addEventListener('change', () => {
-  checkHoleCards();
-  renderHoleCards();
-});
-holeSuit1.addEventListener('change', () => {
-  checkHoleCards();
-  renderHoleCards();
-});
-holeRank2.addEventListener('change', () => {
-  checkHoleCards();
-  renderHoleCards();
-});
-holeSuit2.addEventListener('change', () => {
-  checkHoleCards();
-  renderHoleCards();
-});
+function renderStats(){
+  const total=count||1;
+  const order=['Paar','Zwei Paare','Drilling','Straight','Flush','Full House','Vierling','Straight Flush','Royal Flush'];
+  const areas=[
+    {id:'statsFlop', data:counters.flop},
+    {id:'statsTurn', data:counters.turn},
+    {id:'statsRiver', data:counters.river}
+  ];
+  for(const {id,data} of areas){
+    const el=document.getElementById(id);
+    el.innerHTML='';
+    for(const k of order){
+      const n=data[k]||0;
+      const pct=(n/total*100).toFixed(1);
+      const div=document.createElement('div');
+      div.className='stat-row';
+      div.innerHTML=`
+        <span class="stat-label">${k}</span>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.min(pct,100)}%"></div></div>
+        <span class="stat-val">${n}<small style="color:rgba(201,168,76,0.5);font-size:10px"> (${pct}%)</small></span>`;
+      el.appendChild(div);
+    }
+  }
+}
 
 function renderHistory(){
-  resultList.innerHTML = '';
-  const maxEntries = 1000;
-  const recent = history.slice(-maxEntries);
+  resultList.innerHTML='';
+  const recent=history.slice(-200).reverse();
   for(const h of recent){
-    const div = document.createElement('div');
-    div.textContent = `${h.count}. ${h.classification}`;
-    if(h.classification.toLowerCase().includes('drilling')){
-      div.classList.add('drilling');
-    }
+    const div=document.createElement('div');
+    div.className='history-entry '+histClass(h.classification);
+    div.innerHTML=`<span class="history-num">#${h.count}</span><span>${h.classification}</span>`;
     resultList.appendChild(div);
   }
-  // Automatisches Scrollen ans Ende:
-  resultList.scrollTop = resultList.scrollHeight;
 }
 
 function resetCounts(){
-  drillingCount = 0;
-  pairCount = 0;
-  twoPairCount = 0;
-  straightCount = 0;
-  flushCount = 0;
-  fullHouseCount = 0;
-  count = 0;
-  history = [];
-  updateCounters();
-  renderHistory();
-}
-
-function updateCounters(){
-  pairCountEl.textContent = `Paar-Zähler: ${pairCount}`;
-  twoPairCountEl.textContent = `Zwei Paare-Zähler: ${twoPairCount}`;
-  drillingCountEl.textContent = `Drilling-Zähler: ${drillingCount}`;
-  straightCountEl.textContent = `Straßen-Zähler: ${straightCount}`;
-  flushCountEl.textContent = `Flush-Zähler: ${flushCount}`;
-  fullHouseCountEl.textContent = `Full House-Zähler: ${fullHouseCount}`;
+  for(const stage of ['flop','turn','river'])
+    for(const k in counters[stage]) counters[stage][k]=0;
+  count=0; history=[];
+  roundNum.textContent='0';
+  handBadge.innerHTML='';
+  renderStats(); renderHistory();
 }
 
 function drawOnce(){
   count++;
-  const hole1 = {r: parseInt(holeRank1.value), s: holeSuit1.value};
-  const hole2 = {r: parseInt(holeRank2.value), s: holeSuit2.value};
+  roundNum.textContent=count;
 
-  // Bau Deck ohne Hole Cards
-  let deck = buildDeck().filter(c=>{
-    return !( (c.r===hole1.r && c.s===hole1.s) || (c.r===hole2.r && c.s===hole2.s));
-  });
+  const hole1={r:parseInt(holeRank1.value),s:holeSuit1.value};
+  const hole2={r:parseInt(holeRank2.value),s:holeSuit2.value};
 
+  let deck=buildDeck().filter(c=>!((c.r===hole1.r&&c.s===hole1.s)||(c.r===hole2.r&&c.s===hole2.s)));
   shuffle(deck);
-  // Ziehe Flop (3 Karten)
-  const flop = deck.slice(0,3);
 
-  const allCards = [hole1,hole2,...flop];
-  const classification = classify(allCards);
+  const flop=deck.slice(0,3);
+  const turn=deck[3];
+  const river=deck[4];
 
-  // Update Flop-Anzeige
-  flopArea.innerHTML = '';
+  // Render community cards
+  flopArea.innerHTML='';
   flop.forEach(c=>flopArea.appendChild(cardEl(c)));
 
-  // Update History
-  history.push({count, classification});
-  if(history.length > 1000){
-    history.shift();
-  }
+  turnArea.innerHTML='';
+  turnArea.appendChild(cardEl(turn));
+
+  riverArea.innerHTML='';
+  riverArea.appendChild(cardEl(river));
+
+  // Classify for each stage
+  const clFlop  = classify([hole1,hole2,...flop]);
+  const clTurn  = classify([hole1,hole2,...flop,turn]);
+  const clRiver = classify([hole1,hole2,...flop,turn,river]);
+
+  // Hand badge (River = finale Hand)
+  handBadge.innerHTML=`<span class="hand-name ${handClass(clRiver)}">${clRiver}</span>`;
+
+  // History (River)
+  history.push({count, classification:clRiver});
+  if(history.length>1000) history.shift();
+
+  // Counters
+  const kf=catKey(clFlop);  if(counters.flop.hasOwnProperty(kf))  counters.flop[kf]++;
+  const kt=catKey(clTurn);  if(counters.turn.hasOwnProperty(kt))  counters.turn[kt]++;
+  const kr=catKey(clRiver); if(counters.river.hasOwnProperty(kr)) counters.river[kr]++;
+
   renderHistory();
+  renderStats();
 
-  // Update Zähler je Klassifikation
-  if(classification.toLowerCase().includes('paar') && !classification.toLowerCase().includes('zwei paare')){
-    pairCount++;
-  } else if(classification.toLowerCase().includes('zwei paare')){
-    twoPairCount++;
-  } else if(classification.toLowerCase().includes('drilling')){
-    drillingCount++;
-  } else if(classification.toLowerCase().includes('straight')){
-    straightCount++;
-  } else if(classification.toLowerCase().includes('flush')){
-    flushCount++;
-  } else if(classification.toLowerCase().includes('full house')){
-    fullHouseCount++;
-  }
-  updateCounters();
-
-  if(count >= 1000){
-    stop();
-  }
+  if(count>=1000){ stop(); startBtn.disabled=true; }
 }
 
 function start(){
-  checkHoleCards();
-  renderHoleCards();
-  resetCounts();
-  drawOnce();
-  timer = setInterval(drawOnce, parseFloat(intervalEl.value)*1000);
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
+  checkHoleCards(); renderHoleCards(); resetCounts(); drawOnce();
+  timer=setInterval(drawOnce,parseFloat(intervalEl.value)*1000);
+  startBtn.disabled=true; pauseBtn.disabled=false; paused=false;
+  pauseBtn.textContent='⏸ Pause';
 }
-
+function pause(){
+  if(!paused){
+    clearInterval(timer); timer=null;
+    paused=true;
+    pauseBtn.textContent='▶ Weiter';
+  } else {
+    drawOnce();
+    timer=setInterval(drawOnce,parseFloat(intervalEl.value)*1000);
+    paused=false;
+    pauseBtn.textContent='⏸ Pause';
+  }
+}
 function stop(){
-  clearInterval(timer);
-  timer = null;
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
+  clearInterval(timer); timer=null;
+  startBtn.disabled=false; pauseBtn.disabled=true;
+  pauseBtn.textContent='⏸ Pause'; paused=false;
 }
-
 function restart(){
-  stop();
-  resetCounts();
-  renderHoleCards();
-  flopArea.innerHTML = '';
-  resultList.innerHTML = '';
+  stop(); resetCounts(); renderHoleCards(); setPlaceholders();
 }
 
-startBtn.addEventListener('click', start);
-stopBtn.addEventListener('click', stop);
-restartBtn.addEventListener('click', () => {
-  restart();
-  start();
-});
+const pauseBtn=document.getElementById('pauseBtn');
+let paused=false;
 
-// Initial Setup
-checkHoleCards();
-renderHoleCards();
+startBtn.addEventListener('click',start);
+pauseBtn.addEventListener('click',pause);
+restartBtn.addEventListener('click',()=>{ restart(); });
 
-// Flop direkt anzeigen beim Start (neu gemischt mit holecards ausgeschlossen)
-function initialFlop(){
-  const hole1 = {r: parseInt(holeRank1.value), s: holeSuit1.value};
-  const hole2 = {r: parseInt(holeRank2.value), s: holeSuit2.value};
-  let deck = buildDeck().filter(c=>{
-    return !( (c.r===hole1.r && c.s===hole1.s) || (c.r===hole2.r && c.s===hole2.s));
-  });
-  shuffle(deck);
-  const flop = deck.slice(0,3);
-  flopArea.innerHTML = '';
-  flop.forEach(c=>flopArea.appendChild(cardEl(c)));
-}
-initialFlop();
+// Init
+checkHoleCards(); renderHoleCards(); setPlaceholders(); renderStats();
 </script>
-
 </body>
 </html>
